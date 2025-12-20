@@ -1,0 +1,4 @@
+
+# vitepress stuff
+.vitepress/dist
+.vitepress/cache
