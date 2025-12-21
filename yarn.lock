@@ -497,6 +497,13 @@
     "@iconify-json/octicon" "^1.2.10"
     less "^4.4.0"
 
+"@nolebase/vitepress-plugin-enhanced-mark@^2.18.2":
+  version "2.18.2"
+  resolved "https://registry.yarnpkg.com/@nolebase/vitepress-plugin-enhanced-mark/-/vitepress-plugin-enhanced-mark-2.18.2.tgz#d8d9fa7bcf88f4255f4f78c695de3177c177c59f"
+  integrity sha512-MwdzJuUoGBZLuhKttXs5UX7APqYU37mBywle3hRAlythXIOrnCT1fQyU6zQ8SJCXkojuCUS3N3whQTA2Cmf16Q==
+  dependencies:
+    less "^4.4.0"
+
 "@nolebase/vitepress-plugin-enhanced-readabilities@^2.18.2":
   version "2.18.2"
   resolved "https://registry.yarnpkg.com/@nolebase/vitepress-plugin-enhanced-readabilities/-/vitepress-plugin-enhanced-readabilities-2.18.2.tgz#85c5d5c58c64181ee6de7023d68e54155aa701b0"
