@@ -4,14 +4,14 @@ layout: home
 
 hero:
   name: "ReSukiSU"
-  text: "A more stable fork of SukiSU"
-  tagline: "Make SukiSU Great Again!"
+  text: "一个更加稳定的SukiSU分支"
+  tagline: "让SukiSU再次伟大！"
   image:
     src: /logo.svg
     alt: refs
   actions:
     - theme: brand
-      text: Get started
+      text: 快速上手
       link: /guide/install
     - theme: alt
       text: Github

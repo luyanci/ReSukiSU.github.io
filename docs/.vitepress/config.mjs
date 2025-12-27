@@ -5,31 +5,28 @@ import { BiDirectionalLinks } from '@nolebase/markdown-it-bi-directional-links'
 import { InlineLinkPreviewElementTransform } from '@nolebase/vitepress-plugin-inline-link-preview/markdown-it'
 import { chineseSearchOptimize,pagefindPlugin } from 'vitepress-plugin-pagefind'
 import mdAutoSpacing from 'markdown-it-autospace'
+import locale from './locale/index.mjs'
+
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: "ReSukiSU",
-  description: "A more stable fork of SukiSU",
+  locales: locale.locales,
+  head: [
+    ['link',{rel:"icon",href:'/favicon.svg'}],
+    ['link',{rel:"preconnect",href:'https://s4.zstatic.net/'}],
+    ['link',{rel:"stylesheet",href:'https://s4.zstatic.net/npm/jetbrains-mono-webfont@latest/jetbrains-mono.css'}],
+    ['link',{rel:"stylesheet",href:'https://s4.zstatic.net/npm/remixicon@latest/fonts/remixicon.css'}]
+  ],
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
-    nav: [
-      { text: 'Home', link: '/' },
-      { text: 'Examples', link: '/markdown-examples' }
-    ],
-
-    sidebar: [
-      {
-        text: 'Examples',
-        items: [
-          { text: 'Markdown Examples', link: '/markdown-examples' },
-          { text: 'Runtime API Examples', link: '/api-examples' }
-        ]
-      }
-    ],
-
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/ReSukiSU/ReSukiSU' }
-    ]
+      { icon: 'github', link: 'https://github.com/ReSukiSU' },
+      { icon: 'telegram', link: 'https://t.me/ReSukiSU'}
+    ],
+    footer: {
+      message: "Documented by ReSukiSU Devloperment"
+    },
   },
   markdown: {
     config: (md) => {
