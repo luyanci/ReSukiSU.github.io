@@ -11,11 +11,12 @@ import locale from './locale/index.mjs'
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: "ReSukiSU",
+  description: locale,
   locales: locale.locales,
   head: [
     ['link',{rel:"icon",href:'/favicon.svg'}],
-    ['link',{rel:"stylesheet",href:'https://s4.zstatic.net/npm/jetbrains-mono-webfont@latest/jetbrains-mono.css'}],
-    ['link',{rel:"stylesheet",href:'https://s4.zstatic.net/npm/remixicon@latest/fonts/remixicon.css'}]
+    ['link',{rel:"preconnect",href:'https://s4.zstatic.net/'}],
+    ['link',{rel:"preload stylesheet",href:'https://s4.zstatic.net/npm/jetbrains-mono-webfont@latest/jetbrains-mono.css'}]
   ],
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
@@ -26,6 +27,7 @@ export default defineConfig({
     footer: {
       message: "Documented by ReSukiSU Devloperment"
     },
+
     outline: {
       level: [2,4]
     },

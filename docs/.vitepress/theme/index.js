@@ -23,8 +23,9 @@ import 'vitepress-plugin-codeblocks-fold/style/index.css'
 import 'markdown-it-autospace/spacing.css'
 import 'viewerjs/dist/viewer.min.css'
 
-/ style css /
+/ font & style css /
 import { css } from './MisansVF.ttf'
+import 'remixicon/fonts/remixicon.css'
 import './style.css'
 import './fonts.css'
 
