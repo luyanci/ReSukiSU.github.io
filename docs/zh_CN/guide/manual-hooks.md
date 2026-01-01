@@ -1,5 +1,13 @@
 # 手动钩子补丁参考 {#hooks}
 
+## 最小化钩子 {#scope-minimized-hooks}
+
+:::info Note
+这一部分的钩子，请查看 [`backslashxx/KernelSU #5`](https://github.com/backslashxx/KernelSU/issues/5)
+
+这里不作重复赘述
+:::
+
 ## KernelSU 官方 manual hook {#manual-hooks}
 
 ::: tip Note
@@ -165,8 +173,8 @@ index 344ceaf5e..2b2a35f71 100644
 4. vfs_statx，通常位于 `fs/stat.c`
 5. reboot，通常位于 `kernel/reboot.c`
 
-::: danger IMPORTANT
-reboot钩子是必须添加的，否则如 `ZygiskNext` 等需要通过ksud获取内核版本进行检查的模块会导致其安装失败
+::: danger 注意：
+ReSukiSU会在构建时会对所有手动钩子进行检查，若缺少任意一个，构建将直接失败！
 :::
 
 如果你的内核没有 `vfs_statx` 或者 内核版本 >= 6.1 , 使用 `vfs_fstatat` 来代替它：
@@ -228,7 +236,7 @@ index 2ff887661237..e758d7db7663 100644
  		return -EINVAL;
 ```
 
-### 安全模式 
+### 安全模式 {#safemode}
 
 要使用 ReSukiSU 内置的安全模式，你还需要修改 `drivers/input/input.c` 中的 `input_handle_event` 方法：
 
@@ -261,6 +269,43 @@ index 45306f9ef247..815091ebfca4 100755
  
  	if (disposition != INPUT_IGNORE_EVENT && type != EV_SYN)
  		add_input_randomness(type, code, value);
+```
+
+### setresuid {#setresuid}
+
+::: tip
+自内核版本6.8开始，我们需要您加上这个补丁，否则系统将无法启动
+
+当然 这一部分也会被检查 
+:::
+
+```diff
+diff --git a/kernel/sys.c b/kernel/sys.c
+index 4a87dc5fa..aac25df8c 100644
+--- a/kernel/sys.c
++++ b/kernel/sys.c
+@@ -679,6 +679,10 @@ SYSCALL_DEFINE1(setuid, uid_t, uid)
+ }
+ 
+ 
++#ifdef CONFIG_KSU
++extern int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid);
++#endif
++
+ /*
+  * This function implements a generic ability to update ruid, euid,
+  * and suid.  This allows you to implement the 4.4 compatible seteuid().
+@@ -692,6 +696,10 @@ long __sys_setresuid(uid_t ruid, uid_t euid, uid_t suid)
+ 	kuid_t kruid, keuid, ksuid;
+ 	bool ruid_new, euid_new, suid_new;
+ 
++#ifdef CONFIG_KSU
++	ksu_handle_setresuid(ruid, euid, suid);
++#endif
++
+ 	kruid = make_kuid(ns, ruid);
+ 	keuid = make_kuid(ns, euid);
+ 	ksuid = make_kuid(ns, suid);
 ```
 
 ### path_umount {#how-to-backport-path-umount}
@@ -315,16 +360,6 @@ index 45306f9ef247..815091ebfca4 100755
   * Now umount can handle mount points as well as block devices.
   * This is important for filesystems which use unnamed block devices.
 ```
-
-
-
-## 最小化钩子 {#scope-minimized-hooks}
-
-:::info Note
-这一部分的钩子，请查看 [`backslashxx/KernelSU #5`](https://github.com/backslashxx/KernelSU/issues/5)
-
-这里不作重复赘述
-:::
 
 ## 一些可参考的补丁
 
