@@ -11,7 +11,7 @@ import locale from './locale/index.mjs'
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: "ReSukiSU",
-  description: locale,
+  description: "Make SukiSU Great Again!",
   locales: locale.locales,
   head: [
     ['link',{rel:"icon",href:'/favicon.svg'}],
@@ -52,6 +52,9 @@ export default defineConfig({
       }),
       GitChangelogMarkdownSection({
         exclude: (id) => id.endsWith('index.md'),
+        sections: {
+          disableContributors: true
+        }
       }),
       pagefindPlugin({
         customSearchQuery: chineseSearchOptimize
