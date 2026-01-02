@@ -10,6 +10,7 @@ ReSukiSU 将会检查此处每一条 hook，如果缺少，将会**导致编译�
 这一部分的钩子，改编于 [`backslashxx/KernelSU #5`](https://github.com/backslashxx/KernelSU/issues/5)
 :::
 
+### execve/newfstatat/reboot/input hooks
 ::: code-group
 
 ```diff[exec.c]
@@ -138,9 +139,9 @@ ReSukiSU 将会检查此处每一条 hook，如果缺少，将会**导致编译�
  		spin_lock_irqsave(&dev->event_lock, flags);
 ```
 :::
-::: info sys_faccessat hook
-对于此 hook，不同版本内核不一致，所以此处单独说明
-:::
+
+### faccessat hook
+对于此 hook，不同版本内核不一致，此处单独说明
 
 ::: code-group
 
@@ -192,12 +193,11 @@ ReSukiSU 将会检查此处每一条 hook，如果缺少，将会**导致编译�
  	if (mode & ~S_IRWXO)	/* where's F_OK, X_OK, W_OK, R_OK? */
  		return -EINVAL;
 ```
-::: info setuid hook
-对于此 hook，不同版本内核不一致，所以此处单独说明
-大部分版本（6.8-），此 hook 可以通过 LSM hooks 自动应用
-您可以选择关闭 CONFIG_KSU_MANUAL_HOOK_AUTO_SETUID_HOOK 来在低版本内核使用此手动hook
-但是不推荐这么做
+### setuid hooks
+:::warning 大部分版本不需要此手动 hook
+对于 6.8- 内核，只需保证 CONFIG_KSU_MANUAL_HOOK_AUTO_SETUID_HOOK 处于启用状态，此 hook 即可通过 LSM 自动应用
 :::
+
 ::: code-group
 ```diff[sys.c]
 diff --git a/kernel/sys.c b/kernel/sys.c
@@ -228,12 +228,12 @@ index 4a87dc5fa..aac25df8c 100644
         ksuid = make_kuid(ns, suid);
 ```
 :::
-::: info sys_read hook
-对于此 hook，不同版本内核不一致，所以此处单独说明
-大部分版本（6.8-），此 hook 可以通过 LSM hooks 自动应用
-您也可以选择关闭 CONFIG_KSU_MANUAL_HOOK_AUTO_INITRC_HOOK 来在低版本内核使用此手动hook
-但是不推荐这么做
+
+### sys_read hook
+:::warning 大部分版本不需要此手动 hook
+对于 6.8- 内核，只需保证 CONFIG_KSU_MANUAL_HOOK_AUTO_INITRC_HOOK 处于启用状态，此 hook 即可通过 LSM 自动应用
 :::
+
 ::: code-group
 ```diff[4.19+]
 --- a/fs/read_write.c
@@ -284,9 +284,9 @@ index 4a87dc5fa..aac25df8c 100644
  		ret = vfs_read(f.file, buf, count, &pos);
 ```
 :::
-::: info selinux hook
-只适用于 4.9- 内核
-通过 hook selinux 来允许 init -> su 域转换
+### selinux hook
+:::warning 大部分版本不需要此手动 hook
+此 hook 只适用于 4.9- 内核，防止出现 无法获取 root
 :::
 ::: code-group
 ```diff[hooks.c]
