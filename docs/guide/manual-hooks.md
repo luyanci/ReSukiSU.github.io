@@ -195,7 +195,7 @@ For this hook, different kernel versions are inconsistent, so it is explained se
 ```
 ### setuid hooks
 :::warning Most versions do not require this manual hook.
-For kernel belows 6.8, This hook can be automatically applied via LSM as long as CONFIG_KSU_MANUAL_HOOK_AUTO_SETUID_HOOK is enabled.
+For kernel belows 6.8, This hook can be automatically applied via LSM as long as `CONFIG_KSU_MANUAL_HOOK_AUTO_SETUID_HOOK` is enabled.
 :::
 
 ::: code-group
@@ -231,7 +231,7 @@ index 4a87dc5fa..aac25df8c 100644
 
 ### sys_read hook
 :::warning Most versions do not require this manual hook.
-For kernel belows 6.8, This hook can be automatically applied via LSM as long as CONFIG_KSU_MANUAL_HOOK_AUTO_INITRC_HOOK is enabled.
+For kernel belows 6.8, This hook can be automatically applied via LSM as long as `CONFIG_KSU_MANUAL_HOOK_AUTO_INITRC_HOOK` is enabled.
 :::
 
 ::: code-group
@@ -479,7 +479,7 @@ index 344ceaf5e..2b2a35f71 100644
 ```
 :::
 
-主要是要改五个地方：
+You should find the four functions in kernel source：
 
 1. `do_faccessat`, usually in `fs/open.c`
 2. `do_execveat_common`, usually in `fs/exec.c`
@@ -673,7 +673,7 @@ You can make the "Umount modules" feature work on pre-GKI kernels by manually ba
 
 ## Reference Patches
 
-|地址|说明|
+|Repo|Description|
 |--|--|
 |[`rksuorg/kernel_patches`](https://github.com/rksuorg/kernel_patches)|based on [official manual](manual-hooks.md#manual-hooks) |
 |[`WildKernels/kernel_patches`](https://github.com/WildKernels/kernel_patches/tree/main/next)|based on [scope-minimized-hooks](manual-hooks.md#scope-minimized-hooks) 的补丁|
