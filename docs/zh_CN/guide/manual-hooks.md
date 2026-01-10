@@ -111,33 +111,6 @@ ReSukiSU 将会检查此处每一条 hook，如果缺少，将会**导致编译�
  	if (!ns_capable(pid_ns->user_ns, CAP_SYS_BOOT))
  		return -EPERM;
 ```
-```diff[input.c]
---- a/drivers/input/input.c
-+++ b/drivers/input/input.c
-@@ -436,11 +436,22 @@ static void input_handle_event(struct input_dev *dev,
-  * to 'seed' initial state of a switch or initial position of absolute
-  * axis, etc.
-  */
-+#ifdef CONFIG_KSU_MANUAL_HOOK
-+extern bool ksu_input_hook __read_mostly;
-+extern __attribute__((cold)) int ksu_handle_input_handle_event(
-+			unsigned int *type, unsigned int *code, int *value);
-+#endif
-+
- void input_event(struct input_dev *dev,
- 		 unsigned int type, unsigned int code, int value)
- {
- 	unsigned long flags;
- 
-+#ifdef CONFIG_KSU_MANUAL_HOOK
-+	if (unlikely(ksu_input_hook))
-+		ksu_handle_input_handle_event(&type, &code, &value);
-+#endif
-+
- 	if (is_event_supported(type, dev->evbit, EV_MAX)) {
- 
- 		spin_lock_irqsave(&dev->event_lock, flags);
-```
 :::
 
 ### faccessat hook
@@ -193,6 +166,40 @@ ReSukiSU 将会检查此处每一条 hook，如果缺少，将会**导致编译�
  	if (mode & ~S_IRWXO)	/* where's F_OK, X_OK, W_OK, R_OK? */
  		return -EINVAL;
 ```
+### input hooks
+:::warning 一般无需此手动 hook
+对于input handler 未损坏的内核，只需保证 `CONFIG_KSU_MANUAL_HOOK_AUTO_INPUT_HOOK` 处于启用状态，此 hook 即可通过 input_hanlder 自动应用
+:::
+
+::: code-group
+```diff[input.c]
+--- a/drivers/input/input.c
++++ b/drivers/input/input.c
+@@ -436,11 +436,22 @@ static void input_handle_event(struct input_dev *dev,
+  * to 'seed' initial state of a switch or initial position of absolute
+  * axis, etc.
+  */
++#ifdef CONFIG_KSU_MANUAL_HOOK
++extern bool ksu_input_hook __read_mostly;
++extern __attribute__((cold)) int ksu_handle_input_handle_event(
++			unsigned int *type, unsigned int *code, int *value);
++#endif
++
+ void input_event(struct input_dev *dev,
+ 		 unsigned int type, unsigned int code, int value)
+ {
+ 	unsigned long flags;
+ 
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	if (unlikely(ksu_input_hook))
++		ksu_handle_input_handle_event(&type, &code, &value);
++#endif
++
+ 	if (is_event_supported(type, dev->evbit, EV_MAX)) {
+ 
+ 		spin_lock_irqsave(&dev->event_lock, flags);
+```
+:::
 ### setuid hooks
 :::warning 大部分版本不需要此手动 hook
 对于 6.8- 内核，只需保证 `CONFIG_KSU_MANUAL_HOOK_AUTO_SETUID_HOOK` 处于启用状态，此 hook 即可通过 LSM 自动应用
