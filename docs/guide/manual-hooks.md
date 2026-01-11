@@ -682,5 +682,5 @@ You can make the "Umount modules" feature work on pre-GKI kernels by manually ba
 
 |Repo|Description|
 |--|--|
-|[`rksuorg/kernel_patches`](https://github.com/rksuorg/kernel_patches)|based on [official manual](manual-hooks.md#manual-hooks) |
-|[`WildKernels/kernel_patches`](https://github.com/WildKernels/kernel_patches/tree/main/next)|based on [scope-minimized-hooks](manual-hooks.md#scope-minimized-hooks) 的补丁|
+|[`rksuorg/kernel_patches`](https://github.com/rksuorg/kernel_patches)|based on [official manual](manual-hooks.md#manual-hooks)|
+|[`WildKernels/kernel_patches`](https://github.com/WildKernels/kernel_patches/tree/main/next)|based on [scope-minimized-hooks](manual-hooks.md#scope-minimized-hooks)|
