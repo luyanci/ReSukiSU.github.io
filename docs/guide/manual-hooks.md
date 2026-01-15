@@ -113,6 +113,77 @@ The hook in this part is adapted from [`backslashxx/KernelSU #5`](https://github
 ```
 :::
 
+### newfstat ret_hook
+
+For this hook, different kernel versions are inconsistent, so it is explained separately here
+
+::: code-group
+
+```diff[4.14+]
+--- a/fs/stat.c
++++ b/fs/stat.c
++#ifdef CONFIG_KSU_MANUAL_HOOK
++extern void ksu_handle_newfstat_ret(unsigned int *fd, struct stat __user **statbuf_ptr);
++#ifdef CONFIG_COMPAT
++extern void ksu_compat_newfstat_ret(unsigned int *fd, struct compat_stat __user **statbuf_ptr);
++#endif
++#endif
++
+SYSCALL_DEFINE2(newfstat, unsigned int, fd, struct stat __user *, statbuf)
+{
+  struct kstat stat;
+  int error = vfs_fstat(fd, &stat);
+
+  if (!error)
+    error = cp_new_stat(&stat, statbuf);
+
++#ifdef CONFIG_KSU_MANUAL_HOOK
++  ksu_handle_newfstat_ret(&fd, &statbuf);
++#endif
+  return error;
+}
+
+@@ -659,6 +669,10 @@ 
+
+COMPAT_SYSCALL_DEFINE2(newfstat, unsigned int, fd,
+           struct compat_stat __user *, statbuf)
+{
+  struct kstat stat;
+  int error = vfs_fstat(fd, &stat);
+
+  if (!error)
+    error = cp_compat_stat(&stat, statbuf);
+
++#ifdef CONFIG_KSU_MANUAL_HOOK // 32-on-64
++  ksu_compat_newfstat_ret(&fd, &statbuf);
++#endif
+  return error;
+
+```
+
+```diff[4.9-]
+--- a/fs/stat.c
++++ b/fs/stat.c
++#ifdef CONFIG_KSU_MANUAL_HOOK
++extern void ksu_handle_newfstat_ret(unsigned int *fd, struct stat __user **statbuf_ptr);
++#endif
++
+SYSCALL_DEFINE2(newfstat, unsigned int, fd, struct stat __user *, statbuf)
+{
+  struct kstat stat;
+  int error = vfs_fstat(fd, &stat);
+
+  if (!error)
+    error = cp_new_stat(&stat, statbuf);
+
++#ifdef CONFIG_KSU_MANUAL_HOOK
++  ksu_handle_newfstat_ret(&fd, &statbuf);
++#endif
+  return error;
+}
+```
+:::
+
 ### faccessat hook
 For this hook, different kernel versions are inconsistent, so it is explained separately here
 
