@@ -49,7 +49,7 @@ tools/bazel build --config=fast //common:kernel_aarch64_dist
 
 ## Build kernel with ReSukiSU
 
-First, add ReSukiSU to your kernel source tree:：
+First, add ReSukiSU to your kernel source tree:
 
 ```sh
 curl -LSs "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh" | bash -s builtin
