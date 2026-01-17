@@ -17,6 +17,7 @@ export default defineConfig ({
             { text: '构建内核', link: '/zh_CN/guide/build',collapsed: true,items: [
                 { text: '参考钩子', link: '/zh_CN/guide/manual-hooks' }
             ]},
+            { text: '常见问题', link: '/zh_CN/guide/faq' }
             ]
         },
         {text: '关于 ReSukiSU',link:'/zh_CN/guide/introduce'}

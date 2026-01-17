@@ -16,6 +16,7 @@ export default defineConfig ({
             { text: 'Building Kernel', link: '/guide/build',collapsed:true, items: [
                 { text: 'Manual Hooks', link: '/guide/manual-hooks' }
             ]},
+            { text: 'FAQ', link: '/guide/faq' }
             ]
         },
         { text:"About ReSukiSU",link: "/guide/introduce"}
