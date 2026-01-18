@@ -39,19 +39,23 @@ export default defineConfig({
 
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
+    logo: '/logo-mini.svg',
     socialLinks: [
       { icon: 'github', link: 'https://github.com/ReSukiSU' },
       { icon: 'telegram', link: 'https://t.me/ReSukiSU'}
     ],
     footer: {
-      message: "Documented by ReSukiSU Development",
+      message: "Documented with by ReSukiSU Development",
       copyright: "Copyright © 2025-2026 ReSukiSU, under MIT License"
     },
 
     outline: {
       level: [2, 4]
     },
-    externalLinkIcon: true
+    externalLinkIcon: true,
+    search: {
+      provider: 'local'
+    }
   },
   
   markdown: {

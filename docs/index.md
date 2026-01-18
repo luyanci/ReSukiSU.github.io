@@ -8,31 +8,38 @@ hero:
   tagline: "Make SukiSU Great Again!"
   image:
     src: /logo.svg
-    alt: refs
+    alt: ReSukiSU Logo
   actions:
     - theme: brand
-      text: Get started
+      text: Get Started
       link: /guide/install
     - theme: alt
-      text: Github
+      text: GitHub
       link: https://github.com/ReSukiSU/ReSukiSU
     - theme: alt
-      text: About ReSukiSU
+      text: About
       link: /guide/introduce
 
 features:
-  - title: KernelSU-based ROOT Solution
-    details: ReSukiSU is a KernelSU downstream project, derived from the SukiSU Ultra branch.
-    icon: <i class="ri-hashtag"></i>
-  - title: Non-GKI Kernel Support
-    details: ReSukiSU focuses more on compatibility with Non-GKI, ensuring Non-GKI devices won't break.
-    icon: <i class="ri-checkbox-circle-fill"></i>
-  - title: Scope-Minimized Hook Compatibility
-    details: ReSukiSU is compatible with the latest minimal hooks, no need to select hooks.
-    icon: <i class="ri-checkbox-fill"></i>
+  - title: KernelSU-based ROOT
+    details: ReSukiSU is a KernelSU downstream project, derived from the SukiSU Ultra branch with enhanced stability.
+    icon: <i class="ri-android-fill"></i>
+  - title: Non-GKI Support
+    details: Focused on Non-GKI kernel compatibility, ensuring older devices work flawlessly without breaking.
+    icon: <i class="ri-smartphone-fill"></i>
+  - title: Minimal Hooks
+    details: Compatible with the latest scope-minimized hooks. No need to manually select hooks anymore.
+    icon: <i class="ri-flashlight-fill"></i>
     link: ./guide/manual-hooks.md
   - title: KPM Support
-    details: ReSukiSU is a branch based on SukiSU Ultra, theoretically supporting KPM, but note that this feature is not fully developed.
+    details: Based on SukiSU Ultra, theoretically supports Kernel Patch Modules (KPM). Note that this feature is experimental.
     icon: <i class="ri-puzzle-2-fill"></i>
+  - title: Enhanced Security
+    details: Improved security measures with better module isolation and permission handling.
+    icon: <i class="ri-shield-check-fill"></i>
+  - title: Active Community
+    details: Join our growing community on Telegram for support, updates, and discussions.
+    icon: <i class="ri-telegram-fill"></i>
+    link: https://t.me/ReSukiSU
 ---
 

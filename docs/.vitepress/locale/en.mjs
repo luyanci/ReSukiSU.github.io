@@ -1,9 +1,7 @@
-import { defineConfig } from 'vitepress'
-
-export default defineConfig ({
+export default {
     lang: "en",
+    description: "Make SukiSU Great Again!",
     themeConfig: {
-        description: "Make SukiSU Great Again!",
         nav: [
         { text: '<i class="ri-home-2-fill"></i> Home', link: '/' },
         { text: '<i class="ri-book-2-fill"></i> Guide', link: '/guide/install' },
@@ -28,7 +26,17 @@ export default defineConfig ({
         editLink: {
             text: "Edit page on Github",
             pattern: "https://github.com/ReSukiSU/ReSukiSU.github.io/edit/main/docs/:path"
-        }
+        },
+        docFooter: {
+            prev: 'Previous page',
+            next: 'Next page'
+        },
+        lastUpdated: {
+            text: 'Last updated'
+        },
+        returnToTopLabel: 'Return to top',
+        sidebarMenuLabel: 'Menu',
+        darkModeSwitchLabel: 'Appearance',
+        langMenuLabel: 'Change language'
     }
-    }
-)
+}

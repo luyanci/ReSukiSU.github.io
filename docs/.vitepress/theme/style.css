@@ -3,56 +3,17 @@
  * https://github.com/vuejs/vitepress/blob/main/src/client/theme-default/styles/vars.css
  */
 
-/**
- * Colors
- *
- * Each colors have exact same color scale system with 3 levels of solid
- * colors with different brightness, and 1 soft color.
- *
- * - `XXX-1`: The most solid color used mainly for colored text. It must
- *   satisfy the contrast ratio against when used on top of `XXX-soft`.
- *
- * - `XXX-2`: The color used mainly for hover state of the button.
- *
- * - `XXX-3`: The color for solid background, such as bg color of the button.
- *   It must satisfy the contrast ratio with pure white (#ffffff) text on
- *   top of it.
- *
- * - `XXX-soft`: The color used for subtle background such as custom container
- *   or badges. It must satisfy the contrast ratio when putting `XXX-1` colors
- *   on top of it.
- *
- *   The soft color must be semi transparent alpha channel. This is crucial
- *   because it allows adding multiple "soft" colors on top of each other
- *   to create a accent, such as when having inline code block inside
- *   custom containers.
- *
- * - `default`: The color used purely for subtle indication without any
- *   special meanings attached to it such as bg color for menu hover state.
- *
- * - `brand`: Used for primary brand colors, such as link text, button with
- *   brand theme, etc.
- *
- * - `tip`: Used to indicate useful information. The default theme uses the
- *   brand color for this by default.
- *
- * - `warning`: Used to indicate warning to the users. Used in custom
- *   container, badges, etc.
- *
- * - `danger`: Used to show error, or dangerous message to the users. Used
- *   in custom container, badges, etc.
- * -------------------------------------------------------------------------- */
-
 :root {
   --vp-c-default-1: var(--vp-c-gray-1);
   --vp-c-default-2: var(--vp-c-gray-2);
   --vp-c-default-3: var(--vp-c-gray-3);
   --vp-c-default-soft: var(--vp-c-gray-soft);
 
-  --vp-c-brand-1: var(--vp-c-indigo-1);
-  --vp-c-brand-2: var(--vp-c-indigo-2);
-  --vp-c-brand-3: var(--vp-c-indigo-3);
-  --vp-c-brand-soft: var(--vp-c-indigo-soft);
+  /* Brand colors - Baby pink theme */
+  --vp-c-brand-1: #f472b6;
+  --vp-c-brand-2: #ec4899;
+  --vp-c-brand-3: #db2777;
+  --vp-c-brand-soft: rgba(244, 114, 182, 0.14);
 
   --vp-c-tip-1: var(--vp-c-brand-1);
   --vp-c-tip-2: var(--vp-c-brand-2);
@@ -68,6 +29,17 @@
   --vp-c-danger-2: var(--vp-c-red-2);
   --vp-c-danger-3: var(--vp-c-red-3);
   --vp-c-danger-soft: var(--vp-c-red-soft);
+
+  /* Accent color for highlights */
+  --accent-gradient: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+  --accent-glow: 0 0 40px rgba(244, 114, 182, 0.3);
+}
+
+.dark {
+  --vp-c-brand-1: #f9a8d4;
+  --vp-c-brand-2: #f472b6;
+  --vp-c-brand-3: #ec4899;
+  --vp-c-brand-soft: rgba(249, 168, 212, 0.16);
 }
 
 /**
@@ -87,35 +59,208 @@
 }
 
 /**
- * Component: Home
+ * Component: Home Hero
  * -------------------------------------------------------------------------- */
 
 :root {
   --vp-home-hero-name-color: transparent;
-  --vp-home-hero-name-background: -webkit-linear-gradient(
-    120deg,
-    #bd34fe 30%,
-    #41d1ff
+  --vp-home-hero-name-background: linear-gradient(
+    135deg,
+    #f472b6 0%,
+    #ec4899 50%,
+    #db2777 100%
   );
 
-  --vp-home-hero-image-background-image: linear-gradient(
-    -45deg,
-    #bd34fe 50%,
-    #47caff 50%
+  --vp-home-hero-image-background-image: radial-gradient(
+    circle,
+    #f9a8d4 0%,
+    #f472b6 40%,
+    #ec4899 70%,
+    transparent 100%
   );
-  --vp-home-hero-image-filter: blur(44px);
+  --vp-home-hero-image-filter: blur(56px);
 }
 
 @media (min-width: 640px) {
   :root {
-    --vp-home-hero-image-filter: blur(56px);
+    --vp-home-hero-image-filter: blur(68px);
   }
 }
 
 @media (min-width: 960px) {
   :root {
-    --vp-home-hero-image-filter: blur(68px);
+    --vp-home-hero-image-filter: blur(80px);
   }
+}
+
+/* Hero image background - center behind logo */
+.VPHero .image-bg {
+  transform: translate(-50%, -50%) !important;
+  left: 50% !important;
+  top: 50% !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Hero section enhancements */
+.VPHero {
+  padding-bottom: 64px !important;
+}
+
+.VPHero .name {
+  font-size: 3.5rem !important;
+  line-height: 1.1 !important;
+}
+
+@media (min-width: 640px) {
+  .VPHero .name {
+    font-size: 4.5rem !important;
+  }
+}
+
+@media (min-width: 960px) {
+  .VPHero .name {
+    font-size: 5.5rem !important;
+  }
+}
+
+.VPHero .text {
+  font-size: 1.25rem !important;
+  color: var(--vp-c-text-2);
+}
+
+@media (min-width: 640px) {
+  .VPHero .text {
+    font-size: 1.5rem !important;
+  }
+}
+
+.VPHero .tagline {
+  font-size: 1.1rem !important;
+  opacity: 0.8;
+}
+
+/* Hero image glow animation */
+.VPHero .image-bg {
+  animation: pulse-glow 4s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+/* Hero image container */
+.VPHero .image-container {
+  transition: transform 0.3s ease;
+}
+
+.VPHero .image-container:hover {
+  transform: scale(1.02);
+}
+
+/* Action buttons enhancement */
+.VPHero .actions .VPButton {
+  border-radius: 12px !important;
+  padding: 12px 24px !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+}
+
+.VPHero .actions .VPButton.brand {
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+}
+
+.VPHero .actions .VPButton.brand:hover {
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+  transform: translateY(-2px);
+}
+
+.VPHero .actions .VPButton.alt {
+  background: var(--vp-c-bg-soft);
+  border: 1px solid var(--vp-c-divider);
+}
+
+.VPHero .actions .VPButton.alt:hover {
+  border-color: var(--vp-c-brand-1);
+  color: var(--vp-c-brand-1);
+  transform: translateY(-2px);
+}
+
+/**
+ * Component: Feature Cards
+ * -------------------------------------------------------------------------- */
+
+.VPFeatures {
+  padding-top: 32px !important;
+}
+
+.VPFeature {
+  border-radius: 16px !important;
+  border: 1px solid var(--vp-c-divider) !important;
+  background: var(--vp-c-bg-soft) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  overflow: hidden;
+  position: relative;
+}
+
+.VPFeature::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--accent-gradient);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.VPFeature:hover {
+  border-color: var(--vp-c-brand-1) !important;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+
+.dark .VPFeature:hover {
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+}
+
+.VPFeature:hover::before {
+  opacity: 1;
+}
+
+.VPFeature .icon {
+  font-size: 2rem !important;
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+}
+
+.VPFeature .title {
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+  color: var(--vp-c-text-1);
+}
+
+.VPFeature .details {
+  font-size: 0.95rem !important;
+  color: var(--vp-c-text-2);
+  line-height: 1.6;
+}
+
+/* Feature link indicator */
+.VPFeature .link-text {
+  color: var(--vp-c-brand-1);
+  font-weight: 500;
 }
 
 /**
@@ -127,6 +272,10 @@
   --vp-custom-block-tip-text: var(--vp-c-text-1);
   --vp-custom-block-tip-bg: var(--vp-c-brand-soft);
   --vp-custom-block-tip-code-bg: var(--vp-c-brand-soft);
+}
+
+.custom-block {
+  border-radius: 12px !important;
 }
 
 /* 1. info 容器 - 用 ri-information-2-fill 图标 */
@@ -171,7 +320,78 @@
   align-items: center;
 }
 
+/**
+ * Component: Navigation
+ * -------------------------------------------------------------------------- */
 
+.VPNavBar {
+  backdrop-filter: blur(12px) !important;
+}
+
+.VPNavBarTitle .title {
+  font-weight: 700 !important;
+}
+
+/**
+ * Component: Sidebar
+ * -------------------------------------------------------------------------- */
+
+.VPSidebar {
+  backdrop-filter: blur(12px);
+}
+
+.VPSidebarItem.is-active > .item .link > .text {
+  color: var(--vp-c-brand-1) !important;
+}
+
+/**
+ * Component: Content
+ * -------------------------------------------------------------------------- */
+
+.vp-doc a {
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.vp-doc a:hover {
+  border-bottom-color: var(--vp-c-brand-1);
+}
+
+/* Code blocks */
+.vp-doc [class*='language-'] {
+  border-radius: 12px !important;
+}
+
+/**
+ * Component: Footer
+ * -------------------------------------------------------------------------- */
+
+.VPFooter {
+  border-top: 1px solid var(--vp-c-divider);
+}
+
+/**
+ * Scrollbar styling
+ * -------------------------------------------------------------------------- */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--vp-c-divider);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--vp-c-text-3);
+}
 
 /**
  * Component: Algolia
@@ -179,5 +399,28 @@
 
 .DocSearch {
   --docsearch-primary-color: var(--vp-c-brand-1) !important;
+}
+
+/**
+ * Smooth animations
+ * -------------------------------------------------------------------------- */
+
+* {
+  scroll-behavior: smooth;
+}
+
+.VPContent {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
