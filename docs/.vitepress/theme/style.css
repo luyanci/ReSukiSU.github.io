@@ -363,6 +363,11 @@
   border-radius: 12px !important;
 }
 
+.vp-doc pre.shiki {
+  scrollbar-color: rgba(100, 100, 100, 0.5) rgba(0, 0, 0, 0) !important;
+  scrollbar-width: auto;
+}
+
 /**
  * Component: Footer
  * -------------------------------------------------------------------------- */
