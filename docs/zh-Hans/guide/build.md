@@ -54,6 +54,9 @@ tools/bazel build --config=fast //common:kernel_aarch64_dist
 ```sh
 curl -LSs "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh" | bash
 ```
+
+### 手动钩子
+
 ::: tip
 请注意，某些设备的 defconfig 文件可能在`arch/arm64/configs/设备代号_defconfig`或位于`arch/arm64/configs/vendor/设备代号_defconfig`。在您的 defconfig 文件中，将`CONFIG_KSU`设置为`y`以启用 ReSukiSU，或设置为`n`以禁用。比如在某个 defconfig 中：
 `arch/arm64/configs/...` 
@@ -65,3 +68,21 @@ curl -LSs "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup
 :::
 
 然后，将 [ReSukiSU 调用添加到内核源代码](manual-integrate.md) 中，改完之后重新编译内核即可。
+
+### SUSFS
+
+::: tip
+请注意，某些设备的 defconfig 文件可能在`arch/arm64/configs/设备代号_defconfig`或位于`arch/arm64/configs/vendor/设备代号_defconfig`。在您的 defconfig 文件中，将`CONFIG_KSU`设置为`y`以启用 ReSukiSU，或设置为`n`以禁用。比如在某个 defconfig 中：
+`arch/arm64/configs/...` 
+```diff
++# ReSukiSU
++CONFIG_KSU=y
++CONFIG_KSU_SUSFS=y
+```
+:::
+
+然后，在[SUSFS仓库](https://gitlab.com/simonpunk/susfs4ksu)中**根据你的内核版本选择分支**并按照指导打**内核侧**补丁，改完之后重新编译内核即可。
+
+::: warning
+NonGKI 的分支处于弃置状态，如果需要使用SUSFS,请自行backport移植
+:::
