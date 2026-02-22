@@ -328,43 +328,6 @@ index 4a87dc5fa..aac25df8c 100644
  		ret = vfs_read(f.file, buf, count, &pos);
 ```
 :::
-### selinux hook <Badge type="warning" text="4.9- 必加"/> {#selinux-hook}
-:::warning 大部分版本不需要此手动 hook
-此 hook 只适用于 4.9- 内核，防止出现 无法获取 root
-:::
-::: code-group
-```diff[hooks.c]
---- a/security/selinux/hooks.c
-+++ b/security/selinux/hooks.c
-+#ifdef CONFIG_KSU_MANUAL_HOOK
-+extern bool is_ksu_transition(const struct task_security_struct *old_tsec, 
-+				const struct task_security_struct *new_tsec);
-+#endif
-
-static int check_nnp_nosuid(const struct linux_binprm *bprm,
-			    const struct task_security_struct *old_tsec,
-			    const struct task_security_struct *new_tsec)
-{
-	int nnp = (bprm->unsafe & LSM_UNSAFE_NO_NEW_PRIVS);
-	int nosuid = !mnt_may_suid(bprm->file->f_path.mnt);
-	int rc;
-
-	if (!nnp && !nosuid)
-		return 0; /* neither NNP nor nosuid */
-
-	if (new_tsec->sid == old_tsec->sid)
-		return 0; /* No change in credentials */
-+
-+#ifdef CONFIG_KSU_MANUAL_HOOK
-+	if (is_ksu_transition(old_tsec, new_tsec))
-+		return 0;
-+#endif
-
-	/*
-	 * The only transitions we permit under NNP or nosuid
-	 * are transitions to bounded SIDs, i.e. SIDs that are
-```
-:::
 
 ## path_umount <Badge type="info" text="可选"/> {#how-to-backport-path-umount}
 
