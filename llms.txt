@@ -1,0 +1,19 @@
+# ReSukiSU
+
+> A more stable fork of SukiSU
+
+Make SukiSU Great Again!
+
+## Table of Contents
+
+- [About ReSukiSU](/guide/introduce.md)
+- [FAQ](/guide/faq.md)
+- [How to intregate ReSukiSU {#introduction}](/guide/build.md)
+- [Installing ReSukiSU {#install}](/guide/install.md)
+- [Manual Integrate reference {#hooks}](/guide/manual-integrate.md)
+- [Untitled](/zh-Hans.md)
+- [关于 ReSukiSU](/zh-Hans/guide/introduce.md)
+- [如何为内核集成 ReSukiSU {#introduction}](/zh-Hans/guide/build.md)
+- [安装 ReSukiSU {#install}](/zh-Hans/guide/install.md)
+- [常见问题](/zh-Hans/guide/faq.md)
+- [手动集成参考 {#hooks}](/zh-Hans/guide/manual-integrate.md)

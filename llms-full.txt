@@ -1,0 +1,1381 @@
+---
+url: /guide/introduce.md
+---
+# About ReSukiSU
+
+## What is ReSukiSU? {#what-is-resukisu}
+
+A downstream fork of SukiSU Ultra that removes obsolete or unnecessary components.
+
+## Project Aim {#the-aim}
+
+To stabilize SukiSU — that’s all.
+
+## Why Was This Project Created? {#why}
+
+Due to issues with ShirkNeko's code quality and commit habits, coupled with the numerous bugs that have emerged in SukiSU recently, we **could no longer tolerate the situation** and thus initiated this project
+
+---
+
+---
+url: /guide/faq.md
+---
+# FAQ
+
+## Compilation error when invoking the  `MODULE_DEVICE_TABLE`  macro
+
+The error occurs because the `input handler` **in the kernel source code** is corrupted, which prevents the parameter type verification and syntax parsing from executing normally during macro invocation.
+
+Please add the corresponding calls to the kernel source code according to [the document](manual-integrate.md#input-hooks)
+
+---
+
+---
+url: /guide/build.md
+---
+# How to intregate ReSukiSU {#introduction}
+
+::: info Notes
+This document modified from [KernelSU Official Documentation](https://kernelsu.org)
+:::
+
+ReSukiSU can be integrated into non-GKI kernels and was backported to 4.9 and earlier versions.
+
+Due to the fragmentation of non-GKI kernels, we don't have a universal way to build them; therefore, we cannot provide a non-GKI boot.img. However, you can build the kernel with ReSukiSU integrated on your own.
+
+First, you should be able to build a bootable kernel from kernel source code. If the kernel isn't open source, then it is difficult to run ReSukiSU for your device.
+
+If you're able to build a bootable kernel, you can add ReSukiSU into your kernel by following this guide.
+
+## Building Kernel
+
+::: warning
+This part is for GKI devices
+:::
+
+### Sync the kernel source code
+
+```sh
+repo init -u https://android.googlesource.com/kernel/manifest
+mv <kernel_manifest.xml> .repo/manifests
+repo init -m manifest.xml
+repo sync
+```
+
+The `<kernel_manifest.xml>` file is a manifest that uniquely identifies a build, allowing you to make it reproducible. To do this, you should download the manifest file from [GKI release builds](https://source.android.com/docs/core/architecture/kernel/gki-release-builds).
+
+### Build
+
+Please check the [Building kernels](https://source.android.com/docs/setup/build/building-kernels) first.
+
+For example, to build an `aarch64` kernel image:
+
+```sh
+LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
+```
+
+Don't forget to add the `LTO=thin` flag; otherwise, the build may fail if your computer has less than 24 GB of memory.
+
+Starting from Android 13, the kernel is built by `bazel`:
+
+```sh
+tools/bazel build --config=fast //common:kernel_aarch64_dist
+```
+
+## Build kernel with ReSukiSU
+
+First, add ReSukiSU to your kernel source tree:
+
+```sh
+curl -LSs "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh" | bash
+```
+
+### Manual hooks
+
+::: tip
+Keep in mind that, on some devices, your defconfig may be located at `arch/arm64/configs` or in other cases, it may be at `arch/arm64/configs/vendor/your_defconfig`. Regardless of the defconfig you're using, make sure to enable `CONFIG_KSU` with `y` to enable or `n` to disable it. For example, if you choose to enable it, your defconfig should contain the following string：
+
+`arch/arm64/configs/...`
+
+```diff
++# ReSukiSU
++CONFIG_KSU=y
++CONFIG_KSU_MANUAL_HOOK=y
+```
+
+:::
+
+Then,add [ReSukiSU's hooks](manual-integrate.md) into your kernel, and build your kernel again, and ReSukiSU should work correctly.
+
+### SUSFS
+
+::: tip
+Keep in mind that, on some devices, your defconfig may be located at `arch/arm64/configs` or in other cases, it may be at `arch/arm64/configs/vendor/your_defconfig`. Regardless of the defconfig you're using, make sure to enable `CONFIG_KSU` with `y` to enable or `n` to disable it. For example, if you choose to enable it, your defconfig should contain the following string：
+
+`arch/arm64/configs/...`
+
+```diff
++# ReSukiSU
++CONFIG_KSU=y
++CONFIG_KSU_SUSFS=y
+```
+
+:::
+
+Then, in the [SUSFS repository](https://gitlab.com/simonpunk/susfs4ksu), **choose the branch that matches your kernel version** and apply the **kernel-side patches** as instructed; after making the changes, rebuild the kernel.
+
+::: warning
+The NonGKI branches are deprecated. If you need to use SUSFS, please backport it yourself.
+:::
+
+---
+
+---
+url: /guide/install.md
+---
+# Installing ReSukiSU {#install}
+
+::: tip
+We assume you already have basic firmware flashing skills and bricking recovery knowledge, so this section of the documentation will not be overly detailed.
+:::
+
+## Get Manager {#Get-manager}
+
+::: tip Still Work in Progress...
+Because ReSukiSU's manager have too much things to do,so ReSukiSU will not be released on GitHub Release. However, you can obtain the manager currently under development via [`nightly.link`](https://nightly.link/ReSukiSU/ReSukiSU/workflows/build-manager/main/Manager-release.zip) or [`GitHub Action`](https://github.com/ReSukiSU/ReSukiSU/actions/workflows/build-manager.yml).
+
+(Nightly.link allows downloading files without logging into a GitHub account.)
+:::
+
+## Install {#Installzation}
+
+ReSukiSU provides the following two installation methods:
+
+### LKM Installation {#LKM}
+
+After installing the ReSukiSU Manager, if your kernel version is ≥ `5.10`, clicking `Not Installed` will redirect you to the installation interface and display the `LKM patching/installation` option.
+
+Follow the prompts in the Manager to select the  `boot` / `init_boot` / `vendor_boot` file, then click Next.
+
+::: info tips
+Devices requiring `vendor_boot` patching are quite rare, so you generally only need to patch the `init_boot` file.
+:::
+
+The Manager will quickly determine the LKM file based on the system's KMI, patch the provided image file, and output the patched file as  `KernelSU_patched_*.img`  to the download directory.
+
+After that, you need to flash the patched image file to the corresponding partition using appropriate methods, and you’re all set.
+
+### GKI2/GKI1/Non-GKI Kernel (AnyKernel3) Installation {#builtin}
+
+Although the ReSukiSU Manager has a built-in AnyKernel3 installation method, this option will not be displayed if the Manager does not have ROOT access. You may need to perform the following steps to enable it
+
+1. Flash AnyKernel3 after LKM installzaiton to grant root.
+
+2. Using `magiskboot` to manual patch boot.img.
+
+#### Patch boot.img manually {#manual-patch-boot}
+
+::: info Note
+This part picked from [KernelSU official Documentation](https://kernelsu.org)
+:::
+
+1. [magiskboot](https://github.com/topjohnwu/Magisk/releases)
+2. [magiskboot\_build](https://github.com/ookiineko/magiskboot_build/releases/tag/last-ci)
+
+he official build of `magiskboot` can only run on Android devices, if you want to run it on PC, you can try the second option.
+
+##### Preparation
+
+1. Get your device's stock boot.img. You can get it from your device manufacturers. You may need [payload-dumper-go](https://github.com/ssut/payload-dumper-go).
+2. Unpack the AnyKernel3 package and get the `Image` file, which is the kernel file of KernelSU.
+
+##### Using magiskboot on Android devices {#using-magiskboot-on-Android-devices}
+
+1. Download latest Magisk from [GitHub Releases](https://github.com/topjohnwu/Magisk/releases).
+2. Rename `Magisk-*(version).apk` to `Magisk-*.zip` and unzip it.
+3. Push `Magisk-*/lib/arm64-v8a/libmagiskboot.so` to your device by ADB: `adb push Magisk-*/lib/arm64-v8a/libmagiskboot.so /data/local/tmp/magiskboot`
+4. Push stock boot.img and Image in AnyKernel3 to your device.
+5. Enter ADB shell and run `cd /data/local/tmp/` directory, then `chmod +x magiskboot`
+6. Enter ADB shell and run `cd /data/local/tmp/` directory, execute `./magiskboot unpack boot.img` to unpack `boot.img`, you will get a `kernel` file, this is your stock kernel.
+7. Replace `kernel` with `Image` by running the command: `mv -f Image kernel`.
+8. Execute `./magiskboot repack boot.img` to repack boot image, and you will get a `new-boot.img` file, flash this file to device by fastboot.
+
+##### Using magiskboot on Windows/macOS/Linux PC {#using-magiskboot-on-PC}
+
+1. Download the corresponding `magiskboot` binary for your OS from [magiskboot\_build](https://github.com/ookiineko/magiskboot_build/releases/tag/last-ci).
+2. Prepare stock `boot.img` and `Image` in your PC.
+3. Run `chmod +x magiskboot`.
+4. Enter the corresponding directory, execute `./magiskboot unpack boot.img` to unpack `boot.img`, you will get a `kernel` file, this is your stock kernel.
+5. Replace `kernel` with `Image` by running the command: `mv -f Image kernel`.
+6. Execute `./magiskboot repack boot.img` to repack the boot image, and you will get a `new-boot.img` file, flash this file to device by fastboot.
+
+::: info
+Official `magiskboot` can run in `Linux` environments normally, if you're a Linux user, you can use the official build.
+:::
+
+---
+
+---
+url: /guide/manual-integrate.md
+---
+# Manual Integrate reference {#hooks}
+
+## Manual hooks
+
+::: danger Notice：
+ReSukiSU will check every hook here, and if any are missing, it will **cause compilation to fail**.
+:::
+
+:::info info
+The hook in this part is adapted from [`backslashxx/KernelSU #5`](https://github.com/backslashxx/KernelSU/issues/5)
+:::
+
+### generic hooks  {#generic-hooks}
+
+::: code-group
+
+```diff[exec.c]
+--- a/fs/exec.c
++++ b/fs/exec.c
+@@ -1886,12 +1886,26 @@ static int do_execveat_common(int fd, struct filename *filename,
+ 	return retval;
+ }
+ 
++#ifdef CONFIG_KSU_MANUAL_HOOK
++__attribute__((hot))
++extern int ksu_handle_execveat(int *fd, struct filename **filename_ptr,
++				void *argv, void *envp, int *flags);
++#endif
++
+ int do_execve(struct filename *filename,
+ 	const char __user *const __user *__argv,
+ 	const char __user *const __user *__envp)
+ {
+ 	struct user_arg_ptr argv = { .ptr.native = __argv };
+ 	struct user_arg_ptr envp = { .ptr.native = __envp };
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	ksu_handle_execveat((int *)AT_FDCWD, &filename, &argv, &envp, 0);
++#endif
+ 	return do_execveat_common(AT_FDCWD, filename, argv, envp, 0);
+ }
+ 
+@@ -1919,6 +1933,10 @@ static int compat_do_execve(struct filename *filename,
+ 		.is_compat = true,
+ 		.ptr.compat = __envp,
+ 	};
++#ifdef CONFIG_KSU_MANUAL_HOOK // 32-bit ksud and 32-on-64 support
++	ksu_handle_execveat((int *)AT_FDCWD, &filename, &argv, &envp, 0);
++#endif
+ 	return do_execveat_common(AT_FDCWD, filename, argv, envp, 0);
+ }
+```
+
+```diff[stat.c]
+--- a/fs/stat.c
++++ b/fs/stat.c
+@@ -353,6 +353,10 @@ SYSCALL_DEFINE2(newlstat, const char __user *, filename,
+ 	return cp_new_stat(&stat, statbuf);
+ }
+ 
++#ifdef CONFIG_KSU_MANUAL_HOOK
++__attribute__((hot)) 
++extern int ksu_handle_stat(int *dfd, const char __user **filename_user,
++				int *flags);
++
++extern void ksu_handle_newfstat_ret(unsigned int *fd, struct stat __user **statbuf_ptr);
++#if defined(__ARCH_WANT_STAT64) || defined(__ARCH_WANT_COMPAT_STAT64)
++extern void ksu_handle_fstat64_ret(unsigned long *fd, struct stat64 __user **statbuf_ptr); // optional
++#endif
++#endif
++
+ #if !defined(__ARCH_WANT_STAT64) || defined(__ARCH_WANT_SYS_NEWFSTATAT)
+ SYSCALL_DEFINE4(newfstatat, int, dfd, const char __user *, filename,
+ 		struct stat __user *, statbuf, int, flag)
+@@ -360,6 +364,9 @@ SYSCALL_DEFINE4(newfstatat, int, dfd, const char __user *, filename,
+ 	struct kstat stat;
+ 	int error;
+ 
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	ksu_handle_stat(&dfd, &filename, &flag);
++#endif
+ 	error = vfs_fstatat(dfd, filename, &stat, flag);
+ 	if (error)
+ 		return error;
+@@ -504,6 +511,9 @@ SYSCALL_DEFINE4(fstatat64, int, dfd, const char __user *, filename,
+ 	struct kstat stat;
+ 	int error;
+ 
++#ifdef CONFIG_KSU_MANUAL_HOOK // 32-bit su
++	ksu_handle_stat(&dfd, &filename, &flag); 
++#endif
+ 	error = vfs_fstatat(dfd, filename, &stat, flag);
+ 	if (error)
+ 		return error;
+
+@@ -364,X +364,XX @@  
+SYSCALL_DEFINE2(newfstat, unsigned int, fd, struct stat __user *, statbuf)
+{
+	struct kstat stat;
+	int error = vfs_fstat(fd, &stat);
+
+	if (!error)
+		error = cp_new_stat(&stat, statbuf);
+
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	ksu_handle_newfstat_ret(&fd, &statbuf);
++#endif
+	return error;
+
+ 
+@@ -490,X +497,X @@
+SYSCALL_DEFINE2(fstat64, unsigned long, fd, struct stat64 __user *, statbuf)
+{
+	struct kstat stat;
+	int error = vfs_fstat(fd, &stat);
+
+	if (!error)
+		error = cp_new_stat64(&stat, statbuf);
+
++#ifdef CONFIG_KSU_MANUAL_HOOK // for 32-bit
++	ksu_handle_fstat64_ret(&fd, &statbuf);
++#endif
+	return error;
+}
+```
+
+:::
+
+### faccessat hook  {#faccessat-hook}
+
+For this hook, different kernel versions are inconsistent, so it is explained separately here
+
+::: code-group
+
+```diff[4.19+]
+--- a/fs/open.c
++++ b/fs/open.c
+@@ -450,8 +450,16 @@ long do_faccessat(int dfd, const char __user *filename, int mode)
+ 	return res;
+ }
+ 
++#ifdef CONFIG_KSU_MANUAL_HOOK
++__attribute__((hot)) 
++extern int ksu_handle_faccessat(int *dfd, const char __user **filename_user,
++				int *mode, int *flags);
++#endif
++
+ SYSCALL_DEFINE3(faccessat, int, dfd, const char __user *, filename, int, mode)
+ {
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	ksu_handle_faccessat(&dfd, &filename, &mode, NULL);
++#endif
+ 	return do_faccessat(dfd, filename, mode);
+ }
+```
+
+```diff[4.19-]
+--- a/fs/open.c
++++ b/fs/open.c
+@@ -354,6 +354,11 @@ SYSCALL_DEFINE4(fallocate, int, fd, int, mode, loff_t, offset, loff_t, len)
+ 	return error;
+ }
+ 
++#ifdef CONFIG_KSU_MANUAL_HOOK
++__attribute__((hot)) 
++extern int ksu_handle_faccessat(int *dfd, const char __user **filename_user,
++				int *mode, int *flags);
++#endif
++
+ /*
+  * access() needs to use the real uid/gid, not the effective uid/gid.
+  * We do this by temporarily clearing all FS-related capabilities and
+@@ -369,6 +374,10 @@ SYSCALL_DEFINE3(faccessat, int, dfd, const char __user *, filename, int, mode)
+ 	int res;
+ 	unsigned int lookup_flags = LOOKUP_FOLLOW;
+ 
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	ksu_handle_faccessat(&dfd, &filename, &mode, NULL);
++#endif
++
+ 	if (mode & ~S_IRWXO)	/* where's F_OK, X_OK, W_OK, R_OK? */
+ 		return -EINVAL;
+```
+
+:::
+
+### sys\_reboot hook  {#sys-reboot-hook}
+
+For this hook, different kernel versions are inconsistent, so it is explained separately here
+
+::: code-group
+
+```diff[3.11+]
+--- a/kernel/reboot.c
++++ b/kernel/reboot.c
+@@ -277,6 +277,11 @@ static DEFINE_MUTEX(reboot_mutex);
+  *
+  * reboot doesn't sync: do that yourself before calling this.
+  */
++
++#ifdef CONFIG_KSU_MANUAL_HOOK
++extern int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd, void __user **arg);
++#endif
++
+ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
+ 		void __user *, arg)
+ {
+@@ -284,6 +289,9 @@ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
+ 	char buffer[256];
+ 	int ret = 0;
+ 
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	ksu_handle_sys_reboot(magic1, magic2, cmd, &arg);
++#endif
+ 	/* We only trust the superuser with rebooting the system. */
+ 	if (!ns_capable(pid_ns->user_ns, CAP_SYS_BOOT))
+ 		return -EPERM;
+```
+
+```diff[3.11-]
+diff --git a/kernel/sys.c b/kernel/sys.c
+index a3bef5bd..08d196f5 100644
+--- a/kernel/sys.c
++++ b/kernel/sys.c
+@@ -455,6 +455,10 @@ EXPORT_SYMBOL_GPL(kernel_power_off);
+
+ static DEFINE_MUTEX(reboot_mutex);
+
++#ifdef CONFIG_KSU_MANUAL_HOOK
++extern int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd, void __user **arg);
++#endif
++
+ /*
+  * Reboot system call: for obvious reasons only root may call it,
+  * and even root needs to set up some magic numbers in the registers
+@@ -470,6 +474,10 @@ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
+        char buffer[256];
+        int ret = 0;
+
++#ifdef CONFIG_KSU_MANUAL_HOOK
++       ksu_handle_sys_reboot(magic1, magic2, cmd, &arg);
++#endif
++
+        /* We only trust the superuser with rebooting the system. */
+        if (!ns_capable(pid_ns->user_ns, CAP_SYS_BOOT))
+                return -EPERM;
+```
+
+:::
+
+### input hooks  {#input-hooks}
+
+:::warning This manual hook is generally not required
+For kernels where the input handler is not corrupted, this hook can be automatically applied via the input handler as long as `CONFIG_KSU_MANUAL_HOOK_AUTO_INPUT_HOOK` is enabled.
+:::
+
+::: code-group
+
+```diff[input.c]
+--- a/drivers/input/input.c
++++ b/drivers/input/input.c
+@@ -436,11 +436,22 @@ static void input_handle_event(struct input_dev *dev,
+  * to 'seed' initial state of a switch or initial position of absolute
+  * axis, etc.
+  */
++#ifdef CONFIG_KSU_MANUAL_HOOK
++extern bool ksu_input_hook __read_mostly;
++extern __attribute__((cold)) int ksu_handle_input_handle_event(
++			unsigned int *type, unsigned int *code, int *value);
++#endif
++
+ void input_event(struct input_dev *dev,
+ 		 unsigned int type, unsigned int code, int value)
+ {
+ 	unsigned long flags;
+ 
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	if (unlikely(ksu_input_hook))
++		ksu_handle_input_handle_event(&type, &code, &value);
++#endif
++
+ 	if (is_event_supported(type, dev->evbit, EV_MAX)) {
+ 
+ 		spin_lock_irqsave(&dev->event_lock, flags);
+```
+
+:::
+
+### setuid hooks   {#setuid-hooks}
+
+:::warning Most versions do not require this manual hook.
+For kernel 4.2~6.8 (not included 6.8), This hook can be automatically applied via LSM as long as `CONFIG_KSU_MANUAL_HOOK_AUTO_SETUID_HOOK` is enabled.
+:::
+
+::: code-group
+
+```diff[4.17+]
+diff --git a/kernel/sys.c b/kernel/sys.c
+index 4a87dc5fa..aac25df8c 100644
+--- a/kernel/sys.c
++++ b/kernel/sys.c
+@@ -679,6 +679,10 @@ SYSCALL_DEFINE1(setuid, uid_t, uid)
+ }
+
+
++#ifdef CONFIG_KSU_MANUAL_HOOK
++extern int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid);
++#endif
++
+ /*
+  * This function implements a generic ability to update ruid, euid,
+  * and suid.  This allows you to implement the 4.4 compatible seteuid().
+@@ -692,6 +696,10 @@ long __sys_setresuid(uid_t ruid, uid_t euid, uid_t suid)
+        kuid_t kruid, keuid, ksuid;
+        bool ruid_new, euid_new, suid_new;
+
++#ifdef CONFIG_KSU_MANUAL_HOOK
++       (void)ksu_handle_setresuid(ruid, euid, suid);
++#endif
++
+        kruid = make_kuid(ns, ruid);
+        keuid = make_kuid(ns, euid);
+        ksuid = make_kuid(ns, suid);
+```
+
+```diff[4.17-]
+diff --git a/kernel/sys.c b/kernel/sys.c
+index a3bef5bd..0b116d7c 100644
+--- a/kernel/sys.c
++++ b/kernel/sys.c
+@@ -835,6 +843,9 @@ error:
+        return retval;
+ }
+
++#ifdef CONFIG_KSU_MANUAL_HOOK
++extern int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid);
++#endif
+
+ /*
+  * This function implements a generic ability to update ruid, euid,
+@@ -848,6 +859,10 @@ SYSCALL_DEFINE3(setresuid, uid_t, ruid, uid_t, euid, uid_t, suid)
+        int retval;
+        kuid_t kruid, keuid, ksuid;
+
++#ifdef CONFIG_KSU_MANUAL_HOOK
++       (void)ksu_handle_setresuid(ruid, euid, suid);
++#endif
++
+        kruid = make_kuid(ns, ruid);
+        keuid = make_kuid(ns, euid);
+        ksuid = make_kuid(ns, suid);
+```
+
+:::
+
+### sys\_read hook   {#sys-read-hook}
+
+:::warning Most versions do not require this manual hook.
+For kernel 4.2~6.8 (not included 6.8), This hook can be automatically applied via LSM as long as `CONFIG_KSU_MANUAL_HOOK_AUTO_INITRC_HOOK` is enabled.
+:::
+
+::: code-group
+
+```diff[4.19+]
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -586,8 +586,18 @@ ssize_t ksys_read(unsigned int fd, char __user *buf, size_t count)
+ 	return ret;
+ }
+ 
++#ifdef CONFIG_KSU_MANUAL_HOOK
++extern bool ksu_init_rc_hook __read_mostly;
++extern __attribute__((cold)) int ksu_handle_sys_read(unsigned int fd,
++				char __user **buf_ptr, size_t *count_ptr);
++#endif
++
+ SYSCALL_DEFINE3(read, unsigned int, fd, char __user *, buf, size_t, count)
+ {
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	if (unlikely(ksu_init_rc_hook)) 
++		ksu_handle_sys_read(fd, &buf, &count);
++#endif
+ 	return ksys_read(fd, buf, count);
+ }
+```
+
+```diff[4.19-]
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -568,11 +568,21 @@ static inline void file_pos_write(struct file *file, loff_t pos)
+ 		file->f_pos = pos;
+ }
+ 
++#ifdef CONFIG_KSU_MANUAL_HOOK
++extern bool ksu_init_rc_hook __read_mostly;
++extern __attribute__((cold)) int ksu_handle_sys_read(unsigned int fd,
++				char __user **buf_ptr, size_t *count_ptr);
++#endif
++
+ SYSCALL_DEFINE3(read, unsigned int, fd, char __user *, buf, size_t, count)
+ {
+ 	struct fd f = fdget_pos(fd);
+ 	ssize_t ret = -EBADF;
+ 
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	if (unlikely(ksu_init_rc_hook)) 
++		ksu_handle_sys_read(fd, &buf, &count);
++#endif
+ 	if (f.file) {
+ 		loff_t pos = file_pos_read(f.file);
+ 		ret = vfs_read(f.file, buf, count, &pos);
+```
+
+:::
+
+## path\_umount  {#how-to-backport-path-umount}
+
+::: info Notes
+This is an optional patch，you don't need to apply this one.
+:::
+
+You can make the "Umount modules" feature work on pre-GKI kernels by manually backporting `path_umount` from 5.9. You can use this patch as reference:
+
+```diff
+--- a/fs/namespace.c
++++ b/fs/namespace.c
+@@ -1739,6 +1739,39 @@ static inline bool may_mandlock(void)
+ }
+ #endif
+
++static int can_umount(const struct path *path, int flags)
++{
++	struct mount *mnt = real_mount(path->mnt);
++
++	if (flags & ~(MNT_FORCE | MNT_DETACH | MNT_EXPIRE | UMOUNT_NOFOLLOW))
++		return -EINVAL;
++	if (!may_mount())
++		return -EPERM;
++	if (path->dentry != path->mnt->mnt_root)
++		return -EINVAL;
++	if (!check_mnt(mnt))
++		return -EINVAL;
++	if (mnt->mnt.mnt_flags & MNT_LOCKED) /* Check optimistically */
++		return -EINVAL;
++	if (flags & MNT_FORCE && !capable(CAP_SYS_ADMIN))
++		return -EPERM;
++	return 0;
++}
++
++int path_umount(struct path *path, int flags)
++{
++	struct mount *mnt = real_mount(path->mnt);
++	int ret;
++
++	ret = can_umount(path, flags);
++	if (!ret)
++		ret = do_umount(mnt, flags);
++
++	/* we mustn't call path_put() as that would clear mnt_expiry_mark */
++	dput(path->dentry);
++	mntput_no_expire(mnt);
++	return ret;
++}
+ /*
+  * Now umount can handle mount points as well as block devices.
+  * This is important for filesystems which use unnamed block devices.
+```
+
+---
+
+---
+url: /zh-Hans.md
+---
+
+
+---
+
+---
+url: /zh-Hans/guide/introduce.md
+---
+# 关于 ReSukiSU
+
+## 什么是 ReSukiSU? {#what-is-resukisu}
+
+一个SukiSU Ultra的下游fork，移除一些已经过时或者不需要的东西
+
+## 项目目的 {#the-aim}
+
+让SukiSU变得稳定下来，就这样
+
+## 为什么会创建这个项目？{#why}
+
+由于 ShirkNeko的代码质量及commit习惯问题，且近段时间SukiSU出现的bug很多，我们**难以忍受**，便创建了这个项目
+
+---
+
+---
+url: /zh-Hans/guide/build.md
+---
+# 如何为内核集成 ReSukiSU {#introduction}
+
+::: info Notes
+这个文档修改自 [KernelSU官方文档](https://kernelsu.org)
+:::
+
+ReSukiSU 可以被集成到GKI/非 GKI 内核中，现在它最低支持到内核 4.9 版本；理论上也可以支持更低的版本。
+
+由于非 GKI 内核的碎片化**极其严重**，因此通常没有统一的方法来编译它。但你完全可以自己集成 ReSukiSU 然后编译内核使用。
+
+首先，你必须有能力从你设备的内核源码编译出一个可以开机并且能正常使用的内核，如果内核不开源，这通常难以做到。
+
+如果你已经做好了上述准备，可以通过这个教程来集成 ReSukiSU 到你的内核之中。
+
+## 构建内核
+
+::: warning
+本部分仅适用于 GKI 设备
+:::
+
+### 同步内核源码
+
+```sh
+repo init -u https://android.googlesource.com/kernel/manifest
+mv <kernel_manifest.xml> .repo/manifests
+repo init -m manifest.xml
+repo sync
+```
+
+`<kernel_manifest.xml>` 是一个可以唯一确定构建的清单文件，您可以使用该清单进行可重新预测的构建。 您应该从 [通用内核映像 (GKI) 发布构建](https://source.android.com/docs/core/architecture/kernel/gki-release-builds) 下载清单文件
+
+### 构建
+
+请先查看 [官方文档](https://source.android.com/docs/setup/build/building-kernels)。
+
+例如，我们需要构建 aarch64 内核镜像：
+
+```sh
+LTO=thin BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh
+```
+
+不要忘记添加 `LTO=thin`, 否则，如果您的计算机内存小于 24GB，构建可能会失败.
+
+从 Android 13 开始，内核由 `bazel` 构建:
+
+```sh
+tools/bazel build --config=fast //common:kernel_aarch64_dist
+```
+
+## 使用 ReSukiSU 构建内核
+
+把 ReSukiSU 添加到你的内核源码树，在内核的根目录执行以下命令：
+
+```sh
+curl -LSs "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh" | bash
+```
+
+### 手动钩子
+
+::: tip
+请注意，某些设备的 defconfig 文件可能在`arch/arm64/configs/设备代号_defconfig`或位于`arch/arm64/configs/vendor/设备代号_defconfig`。在您的 defconfig 文件中，将`CONFIG_KSU`设置为`y`以启用 ReSukiSU，或设置为`n`以禁用。比如在某个 defconfig 中：
+`arch/arm64/configs/...`
+
+```diff
++# ReSukiSU
++CONFIG_KSU=y
++CONFIG_KSU_MANUAL_HOOK=y
+```
+
+:::
+
+然后，将 [ReSukiSU 调用添加到内核源代码](manual-integrate.md) 中，改完之后重新编译内核即可。
+
+### SUSFS
+
+::: tip
+请注意，某些设备的 defconfig 文件可能在`arch/arm64/configs/设备代号_defconfig`或位于`arch/arm64/configs/vendor/设备代号_defconfig`。在您的 defconfig 文件中，将`CONFIG_KSU`设置为`y`以启用 ReSukiSU，或设置为`n`以禁用。比如在某个 defconfig 中：
+`arch/arm64/configs/...`
+
+```diff
++# ReSukiSU
++CONFIG_KSU=y
++CONFIG_KSU_SUSFS=y
+```
+
+:::
+
+然后，在[SUSFS仓库](https://gitlab.com/simonpunk/susfs4ksu)中**根据你的内核版本选择分支**并按照指导打**内核侧**补丁，改完之后重新编译内核即可。
+
+::: warning
+NonGKI 的分支处于弃置状态，如果需要使用SUSFS,请自行backport移植
+:::
+
+---
+
+---
+url: /zh-Hans/guide/install.md
+---
+# 安装 ReSukiSU {#install}
+
+::: tip
+我们默认你已经拥有一定的刷机基础能力，和基本的救砖知识，所以这一部分的文档并不会写得很详细
+:::
+
+## 下载ReSukiSU管理器 {#Get-manager}
+
+::: tip 仍在开发中...
+因为 ReSukiSU 的管理器还有很多未完成的东西，所以ReSukiSU暂时不会发布至Github Release，但你可以通过[`nightly.link`](https://nightly.link/ReSukiSU/ReSukiSU/workflows/build-manager/main/Manager-release.zip) 或者 [`Github Action`](https://github.com/ReSukiSU/ReSukiSU/actions/workflows/build-manager.yml)来获取目前仍在开发中的管理器。
+
+(Nightly.link无需登录Github账号即可下载文件)
+:::
+
+## 安装 {#Installzation}
+
+ReSukiSU 提供了以下两种方式来安装 ReSukiSU
+
+### LKM 安装 {#LKM}
+
+在安装好 ReSukiSU 管理器后，如果内核版本 >= 5.10 ，点击`未安装`后会跳转到安装界面并显示LKM修补/安装。
+
+根据管理器的提示，选择好boot/init\_boot/vendor\_boot文件，点击`下一步`。
+
+::: info tips
+需要修补`vendor_boot`的设备相当少见，所以一般只需要修补`init_boot`文件即可
+:::
+
+管理器会快速地将根据系统的KMI决定LKM文件，并将其提供的镜像文件进行修补，并以`KernelSU_patched_*.img`输出至下载目录
+
+之后需要通过一些方法，把修补后的镜像文件**刷入**进对应分区，便大功告成了
+
+### GKI2/GKI1/非GKI内核（Anykernel3）安装 {#builtin}
+
+ReSukiSU管理器虽然内置了Anykernel3的安装方式，但是在管理器未获得**ROOT权限**时，这个安装方法不会被显示出来。您可能需要以下操作才可使用
+
+1.通过 [LKM安装](install#LKM) 获取root后再进行刷入AnyKernel3包
+
+2.使用`magiskboot`手动修改boot镜像
+
+#### 手动修改boot镜像 {#manual-patch-boot}
+
+::: info Note
+这一部分取自 [KernelSU官方文档](https://kernelsu.org)
+:::
+
+1. [magiskboot](https://github.com/topjohnwu/Magisk/releases)
+2. [magiskboot\_build](https://github.com/ookiineko/magiskboot_build/releases/tag/last-ci)
+
+Magisk 官方提供的 `magiskboot` 只能运行在 Android/Linux 设备上，如果你想在 macOS/Windows 上使用 `magiskboot` 可以使用第二个方法。
+
+##### 准备 {#patch-preparation}
+
+1. 获取你手机的原厂 boot.img；你可以通过你手机的线刷包解压后之间获取，如果你是卡刷包，那你也许需要 [payload-dumper-go](https://github.com/ssut/payload-dumper-go)
+2. 下载你所获取到的 AnyKernel3 刷机包
+3. 解压缩 AnyKernel3 刷机包，获取其中的 `Image` 文件，此文件为 KernelSU 的内核文件。
+
+##### 在 Android 设备上使用 magiskboot {#using-magiskboot-on-Android-devices}
+
+1. 在 Magisk 的 [Release 页面](https://github.com/topjohnwu/Magisk/releases) 下载最新的 Magisk 安装包。
+2. 将 `Magisk-*(version).apk` 重命名为 `Magisk-*.zip` 然后解压缩。
+3. 将解压后的 `Magisk-*/lib/arm64-v8a/libmagiskboot.so` 文件，使用 adb push 到手机：`adb push Magisk-*/lib/arm64-v8a/libmagiskboot.so /data/local/tmp/magiskboot`
+4. 使用 adb 将原厂 boot.img 和 AnyKernel3 中的 Image 推送到手机
+5. adb shell 进入 /data/local/tmp/ 目录，然后赋予刚 push 文件的可执行权限 `chmod +x magiskboot`
+6. adb shell 进入 /data/local/tmp/ 目录，执行 `./magiskboot unpack boot.img` 此时会解包 `boot.img` 得到一个叫做 `kernel` 的文件，这个文件为你原厂的 kernel
+7. 使用 `Image` 替换 `kernel`: `mv -f Image kernel`
+8. 执行 `./magiskboot repack boot.img` 打包 img，此时你会得到一个 `new-boot.img` 的文件，使用这个文件 fastboot 刷入设备即可。
+
+##### 在 macOS/Windows/Linux 上使用 magiskboot {#using-magiskboot-on-PC}
+
+1. 在 [magiskboot\_build](https://github.com/ookiineko/magiskboot_build/releases/tag/last-ci) 下载适合你操作系统的 `magiskboot` 二进制文件。
+2. 在你的 PC 上准备好设备原厂的 boot.img 和 KernelSU 的 Image。
+3. `chmod +x magiskboot`
+4. 在你 PC 上合适的目录执行 `./magiskboot unpack boot.img` 来解包 `boot.img`, 你会得到一个 `kernel` 文件，这个文件是你设备原厂的 kernel。
+5. 使用 `Image` 替换 `kernel`: `mv -f Image kernel`
+6. 执行 `./magiskboot repack boot.img` 打包 img，此时你会得到一个 `new-boot.img` 的文件，使用这个文件 fastboot 刷入设备即可。
+
+:::info
+Magisk 官方的 `magiskboot` 可以在 Linux 设备上执行，如果你是 Linux 用户，可以直接用官方版本。
+:::
+
+---
+
+---
+url: /zh-Hans/guide/faq.md
+---
+# 常见问题
+
+## `MODULE_DEVICE_TABLE` 宏调用编译报错
+
+出现该报错的原因是内核源码中的 `input handler` 已损坏，导致宏调用时参数类型校验、语法解析等环节无法正常执行。
+
+跟随[文档](manual-integrate.md#input-hooks)内容对内核源码增加对应调用即可
+
+---
+
+---
+url: /zh-Hans/guide/manual-integrate.md
+---
+# 手动集成参考 {#hooks}
+
+## 手动挂钩 {#scope-minimized-hooks}
+
+::: danger Notice：
+ReSukiSU 将会检查此处每一条 hook，如果缺少，将会**导致编译失败**
+:::
+
+:::info 提示
+这一部分的钩子，改编于 [`backslashxx/KernelSU #5`](https://github.com/backslashxx/KernelSU/issues/5)
+:::
+
+### 通用钩子  {#generic-hooks}
+
+::: code-group
+
+```diff[exec.c]
+--- a/fs/exec.c
++++ b/fs/exec.c
+@@ -1886,12 +1886,26 @@ static int do_execveat_common(int fd, struct filename *filename,
+ 	return retval;
+ }
+ 
++#ifdef CONFIG_KSU_MANUAL_HOOK
++__attribute__((hot))
++extern int ksu_handle_execveat(int *fd, struct filename **filename_ptr,
++				void *argv, void *envp, int *flags);
++#endif
++
+ int do_execve(struct filename *filename,
+ 	const char __user *const __user *__argv,
+ 	const char __user *const __user *__envp)
+ {
+ 	struct user_arg_ptr argv = { .ptr.native = __argv };
+ 	struct user_arg_ptr envp = { .ptr.native = __envp };
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	ksu_handle_execveat((int *)AT_FDCWD, &filename, &argv, &envp, 0);
++#endif
+ 	return do_execveat_common(AT_FDCWD, filename, argv, envp, 0);
+ }
+ 
+@@ -1919,6 +1933,10 @@ static int compat_do_execve(struct filename *filename,
+ 		.is_compat = true,
+ 		.ptr.compat = __envp,
+ 	};
++#ifdef CONFIG_KSU_MANUAL_HOOK // 32-bit ksud and 32-on-64 support
++	ksu_handle_execveat((int *)AT_FDCWD, &filename, &argv, &envp, 0);
++#endif
+ 	return do_execveat_common(AT_FDCWD, filename, argv, envp, 0);
+ }
+```
+
+```diff[stat.c]
+--- a/fs/stat.c
++++ b/fs/stat.c
+@@ -353,6 +353,10 @@ SYSCALL_DEFINE2(newlstat, const char __user *, filename,
+ 	return cp_new_stat(&stat, statbuf);
+ }
+ 
++#ifdef CONFIG_KSU_MANUAL_HOOK
++__attribute__((hot)) 
++extern int ksu_handle_stat(int *dfd, const char __user **filename_user,
++				int *flags);
++
++extern void ksu_handle_newfstat_ret(unsigned int *fd, struct stat __user **statbuf_ptr);
++#if defined(__ARCH_WANT_STAT64) || defined(__ARCH_WANT_COMPAT_STAT64)
++extern void ksu_handle_fstat64_ret(unsigned long *fd, struct stat64 __user **statbuf_ptr); // optional
++#endif
++#endif
++
+ #if !defined(__ARCH_WANT_STAT64) || defined(__ARCH_WANT_SYS_NEWFSTATAT)
+ SYSCALL_DEFINE4(newfstatat, int, dfd, const char __user *, filename,
+ 		struct stat __user *, statbuf, int, flag)
+@@ -360,6 +364,9 @@ SYSCALL_DEFINE4(newfstatat, int, dfd, const char __user *, filename,
+ 	struct kstat stat;
+ 	int error;
+ 
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	ksu_handle_stat(&dfd, &filename, &flag);
++#endif
+ 	error = vfs_fstatat(dfd, filename, &stat, flag);
+ 	if (error)
+ 		return error;
+@@ -504,6 +511,9 @@ SYSCALL_DEFINE4(fstatat64, int, dfd, const char __user *, filename,
+ 	struct kstat stat;
+ 	int error;
+ 
++#ifdef CONFIG_KSU_MANUAL_HOOK // 32-bit su
++	ksu_handle_stat(&dfd, &filename, &flag); 
++#endif
+ 	error = vfs_fstatat(dfd, filename, &stat, flag);
+ 	if (error)
+ 		return error;
+
+@@ -364,X +364,XX @@  
+SYSCALL_DEFINE2(newfstat, unsigned int, fd, struct stat __user *, statbuf)
+{
+	struct kstat stat;
+	int error = vfs_fstat(fd, &stat);
+
+	if (!error)
+		error = cp_new_stat(&stat, statbuf);
+
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	ksu_handle_newfstat_ret(&fd, &statbuf);
++#endif
+	return error;
+
+ 
+@@ -490,X +497,X @@
+SYSCALL_DEFINE2(fstat64, unsigned long, fd, struct stat64 __user *, statbuf)
+{
+	struct kstat stat;
+	int error = vfs_fstat(fd, &stat);
+
+	if (!error)
+		error = cp_new_stat64(&stat, statbuf);
+
++#ifdef CONFIG_KSU_MANUAL_HOOK // for 32-bit
++	ksu_handle_fstat64_ret(&fd, &statbuf);
++#endif
+	return error;
+}
+```
+
+:::
+
+### faccessat hook  {#faccessat-hook}
+
+对于此 hook，不同版本内核不一致，此处单独说明
+
+::: code-group
+
+```diff[4.19+]
+--- a/fs/open.c
++++ b/fs/open.c
+@@ -450,8 +450,16 @@ long do_faccessat(int dfd, const char __user *filename, int mode)
+ 	return res;
+ }
+ 
++#ifdef CONFIG_KSU_MANUAL_HOOK
++__attribute__((hot)) 
++extern int ksu_handle_faccessat(int *dfd, const char __user **filename_user,
++				int *mode, int *flags);
++#endif
++
+ SYSCALL_DEFINE3(faccessat, int, dfd, const char __user *, filename, int, mode)
+ {
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	ksu_handle_faccessat(&dfd, &filename, &mode, NULL);
++#endif
+ 	return do_faccessat(dfd, filename, mode);
+ }
+```
+
+```diff[4.19-]
+--- a/fs/open.c
++++ b/fs/open.c
+@@ -354,6 +354,11 @@ SYSCALL_DEFINE4(fallocate, int, fd, int, mode, loff_t, offset, loff_t, len)
+ 	return error;
+ }
+ 
++#ifdef CONFIG_KSU_MANUAL_HOOK
++__attribute__((hot)) 
++extern int ksu_handle_faccessat(int *dfd, const char __user **filename_user,
++				int *mode, int *flags);
++#endif
++
+ /*
+  * access() needs to use the real uid/gid, not the effective uid/gid.
+  * We do this by temporarily clearing all FS-related capabilities and
+@@ -369,6 +374,10 @@ SYSCALL_DEFINE3(faccessat, int, dfd, const char __user *, filename, int, mode)
+ 	int res;
+ 	unsigned int lookup_flags = LOOKUP_FOLLOW;
+ 
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	ksu_handle_faccessat(&dfd, &filename, &mode, NULL);
++#endif
++
+ 	if (mode & ~S_IRWXO)	/* where's F_OK, X_OK, W_OK, R_OK? */
+ 		return -EINVAL;
+```
+
+:::
+
+### sys\_reboot hook  {#sys-reboot-hook}
+
+对于此 hook，不同版本内核不一致，此处单独说明
+
+::: code-group
+
+```diff[3.11+]
+--- a/kernel/reboot.c
++++ b/kernel/reboot.c
+@@ -277,6 +277,11 @@ static DEFINE_MUTEX(reboot_mutex);
+  *
+  * reboot doesn't sync: do that yourself before calling this.
+  */
++
++#ifdef CONFIG_KSU_MANUAL_HOOK
++extern int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd, void __user **arg);
++#endif
++
+ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
+ 		void __user *, arg)
+ {
+@@ -284,6 +289,9 @@ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
+ 	char buffer[256];
+ 	int ret = 0;
+ 
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	ksu_handle_sys_reboot(magic1, magic2, cmd, &arg);
++#endif
+ 	/* We only trust the superuser with rebooting the system. */
+ 	if (!ns_capable(pid_ns->user_ns, CAP_SYS_BOOT))
+ 		return -EPERM;
+```
+
+```diff[3.11-]
+diff --git a/kernel/sys.c b/kernel/sys.c
+index a3bef5bd..08d196f5 100644
+--- a/kernel/sys.c
++++ b/kernel/sys.c
+@@ -455,6 +455,10 @@ EXPORT_SYMBOL_GPL(kernel_power_off);
+
+ static DEFINE_MUTEX(reboot_mutex);
+
++#ifdef CONFIG_KSU_MANUAL_HOOK
++extern int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd, void __user **arg);
++#endif
++
+ /*
+  * Reboot system call: for obvious reasons only root may call it,
+  * and even root needs to set up some magic numbers in the registers
+@@ -470,6 +474,10 @@ SYSCALL_DEFINE4(reboot, int, magic1, int, magic2, unsigned int, cmd,
+        char buffer[256];
+        int ret = 0;
+
++#ifdef CONFIG_KSU_MANUAL_HOOK
++       ksu_handle_sys_reboot(magic1, magic2, cmd, &arg);
++#endif
++
+        /* We only trust the superuser with rebooting the system. */
+        if (!ns_capable(pid_ns->user_ns, CAP_SYS_BOOT))
+                return -EPERM;
+```
+
+:::
+
+### input hooks  {#input-hooks}
+
+:::warning 一般无需此手动 hook
+对于 input handler 未损坏的内核，只需保证 `CONFIG_KSU_MANUAL_HOOK_AUTO_INPUT_HOOK` 处于启用状态，此 hook 即可通过 input\_hanlder 自动应用
+:::
+
+::: code-group
+
+```diff[input.c]
+--- a/drivers/input/input.c
++++ b/drivers/input/input.c
+@@ -436,11 +436,22 @@ static void input_handle_event(struct input_dev *dev,
+  * to 'seed' initial state of a switch or initial position of absolute
+  * axis, etc.
+  */
++#ifdef CONFIG_KSU_MANUAL_HOOK
++extern bool ksu_input_hook __read_mostly;
++extern __attribute__((cold)) int ksu_handle_input_handle_event(
++			unsigned int *type, unsigned int *code, int *value);
++#endif
++
+ void input_event(struct input_dev *dev,
+ 		 unsigned int type, unsigned int code, int value)
+ {
+ 	unsigned long flags;
+ 
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	if (unlikely(ksu_input_hook))
++		ksu_handle_input_handle_event(&type, &code, &value);
++#endif
++
+ 	if (is_event_supported(type, dev->evbit, EV_MAX)) {
+ 
+ 		spin_lock_irqsave(&dev->event_lock, flags);
+```
+
+:::
+
+### setuid hooks   {#setuid-hooks}
+
+:::warning 大部分版本不需要此手动 hook
+对于 4.2~6.8(不包括6.8) 的内核，只需保证 `CONFIG_KSU_MANUAL_HOOK_AUTO_SETUID_HOOK` 处于启用状态，此 hook 即可通过 LSM 自动应用
+:::
+
+::: code-group
+
+```diff[4.17+]
+diff --git a/kernel/sys.c b/kernel/sys.c
+index 4a87dc5fa..aac25df8c 100644
+--- a/kernel/sys.c
++++ b/kernel/sys.c
+@@ -679,6 +679,10 @@ SYSCALL_DEFINE1(setuid, uid_t, uid)
+ }
+
+
++#ifdef CONFIG_KSU_MANUAL_HOOK
++extern int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid);
++#endif
++
+ /*
+  * This function implements a generic ability to update ruid, euid,
+  * and suid.  This allows you to implement the 4.4 compatible seteuid().
+@@ -692,6 +696,10 @@ long __sys_setresuid(uid_t ruid, uid_t euid, uid_t suid)
+        kuid_t kruid, keuid, ksuid;
+        bool ruid_new, euid_new, suid_new;
+
++#ifdef CONFIG_KSU_MANUAL_HOOK
++       (void)ksu_handle_setresuid(ruid, euid, suid);
++#endif
++
+        kruid = make_kuid(ns, ruid);
+        keuid = make_kuid(ns, euid);
+        ksuid = make_kuid(ns, suid);
+```
+
+```diff[4.17-]
+diff --git a/kernel/sys.c b/kernel/sys.c
+index a3bef5bd..0b116d7c 100644
+--- a/kernel/sys.c
++++ b/kernel/sys.c
+@@ -835,6 +843,9 @@ error:
+        return retval;
+ }
+
++#ifdef CONFIG_KSU_MANUAL_HOOK
++extern int ksu_handle_setresuid(uid_t ruid, uid_t euid, uid_t suid);
++#endif
+
+ /*
+  * This function implements a generic ability to update ruid, euid,
+@@ -848,6 +859,10 @@ SYSCALL_DEFINE3(setresuid, uid_t, ruid, uid_t, euid, uid_t, suid)
+        int retval;
+        kuid_t kruid, keuid, ksuid;
+
++#ifdef CONFIG_KSU_MANUAL_HOOK
++       (void)ksu_handle_setresuid(ruid, euid, suid);
++#endif
++
+        kruid = make_kuid(ns, ruid);
+        keuid = make_kuid(ns, euid);
+        ksuid = make_kuid(ns, suid);
+```
+
+:::
+
+### sys\_read hook   {#sys-read-hook}
+
+:::warning 大部分版本不需要此手动 hook
+对于 4.2~6.8(不包括6.8) 的内核，只需保证 `CONFIG_KSU_MANUAL_HOOK_AUTO_INITRC_HOOK` 处于启用状态，此 hook 即可通过 LSM 自动应用
+:::
+
+::: code-group
+
+```diff[4.19+]
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -586,8 +586,18 @@ ssize_t ksys_read(unsigned int fd, char __user *buf, size_t count)
+ 	return ret;
+ }
+ 
++#ifdef CONFIG_KSU_MANUAL_HOOK
++extern bool ksu_init_rc_hook __read_mostly;
++extern __attribute__((cold)) int ksu_handle_sys_read(unsigned int fd,
++				char __user **buf_ptr, size_t *count_ptr);
++#endif
++
+ SYSCALL_DEFINE3(read, unsigned int, fd, char __user *, buf, size_t, count)
+ {
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	if (unlikely(ksu_init_rc_hook)) 
++		ksu_handle_sys_read(fd, &buf, &count);
++#endif
+ 	return ksys_read(fd, buf, count);
+ }
+```
+
+```diff[4.19-]
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -568,11 +568,21 @@ static inline void file_pos_write(struct file *file, loff_t pos)
+ 		file->f_pos = pos;
+ }
+ 
++#ifdef CONFIG_KSU_MANUAL_HOOK
++extern bool ksu_init_rc_hook __read_mostly;
++extern __attribute__((cold)) int ksu_handle_sys_read(unsigned int fd,
++				char __user **buf_ptr, size_t *count_ptr);
++#endif
++
+ SYSCALL_DEFINE3(read, unsigned int, fd, char __user *, buf, size_t, count)
+ {
+ 	struct fd f = fdget_pos(fd);
+ 	ssize_t ret = -EBADF;
+ 
++#ifdef CONFIG_KSU_MANUAL_HOOK
++	if (unlikely(ksu_init_rc_hook)) 
++		ksu_handle_sys_read(fd, &buf, &count);
++#endif
+ 	if (f.file) {
+ 		loff_t pos = file_pos_read(f.file);
+ 		ret = vfs_read(f.file, buf, count, &pos);
+```
+
+:::
+
+## path\_umount  {#how-to-backport-path-umount}
+
+::: info Notes
+这是一个可选选项，你可以不移植这一部分
+:::
+
+你可以通过从 K5.9 向旧版本移植 `path_umount`，在 GKI 之前的内核上获得卸载模块的功能。你可以通过以下补丁作为参考:
+
+```diff
+--- a/fs/namespace.c
++++ b/fs/namespace.c
+@@ -1739,6 +1739,39 @@ static inline bool may_mandlock(void)
+ }
+ #endif
+
++static int can_umount(const struct path *path, int flags)
++{
++	struct mount *mnt = real_mount(path->mnt);
++
++	if (flags & ~(MNT_FORCE | MNT_DETACH | MNT_EXPIRE | UMOUNT_NOFOLLOW))
++		return -EINVAL;
++	if (!may_mount())
++		return -EPERM;
++	if (path->dentry != path->mnt->mnt_root)
++		return -EINVAL;
++	if (!check_mnt(mnt))
++		return -EINVAL;
++	if (mnt->mnt.mnt_flags & MNT_LOCKED) /* Check optimistically */
++		return -EINVAL;
++	if (flags & MNT_FORCE && !capable(CAP_SYS_ADMIN))
++		return -EPERM;
++	return 0;
++}
++
++int path_umount(struct path *path, int flags)
++{
++	struct mount *mnt = real_mount(path->mnt);
++	int ret;
++
++	ret = can_umount(path, flags);
++	if (!ret)
++		ret = do_umount(mnt, flags);
++
++	/* we mustn't call path_put() as that would clear mnt_expiry_mark */
++	dput(path->dentry);
++	mntput_no_expire(mnt);
++	return ret;
++}
+ /*
+  * Now umount can handle mount points as well as block devices.
+  * This is important for filesystems which use unnamed block devices.
+```
