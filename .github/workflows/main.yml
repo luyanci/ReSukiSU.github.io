@@ -29,7 +29,12 @@ jobs:
       - name: Install Dependencies
         run: pnpm install
       - name: Build
-        run: pnpm run docs:build
+        run: |
+           export NODE_OPTIONS="--max-old-space-size=2048"
+           pnpm run docs:build
+           echo done.
+           pkill -f node || true
+
       - name: Deploy
         uses: actions/upload-pages-artifact@v4
         with:
