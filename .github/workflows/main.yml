@@ -9,40 +9,55 @@ on:
       - docs/**/**
       - package.json
       - .github/workflows/main.yml
+
 jobs:
   pages:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      success: ${{ steps.check-dist.outputs.success }}
     steps:
       - uses: pnpm/action-setup@v4
         with:
           version: 10
+
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+
       - name: Use Node.js LTS
         uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: pnpm
+
       - name: Install Dependencies
         run: pnpm install
+
       - name: Build
         timeout-minutes: 2
-        run: |
-           export NODE_OPTIONS="--max-old-space-size=2048"
-           pnpm run docs:build
-           echo done.
-           pkill -f node || true
+        run: pnpm run docs:build
 
-      - name: Deploy
+      - name: Check dist directory
+        if: always()
+        id: check-dist
+        run: |
+          if [ -d "docs/.vitepress/dist" ] && [ -n "$(ls -A docs/.vitepress/dist 2>/dev/null)" ]; then
+            echo "success=true" >> $GITHUB_OUTPUT
+          else
+            echo "success=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload artifact
+        if: steps.check-dist.outputs.success == 'true'
         uses: actions/upload-pages-artifact@v4
         with:
           path: ./docs/.vitepress/dist
+
   deploy:
-    if: github.ref == 'refs/heads/main'
     needs: pages
+    if: github.ref == 'refs/heads/main' && needs.pages.outputs.success == 'true'
     permissions:
       pages: write
       id-token: write
